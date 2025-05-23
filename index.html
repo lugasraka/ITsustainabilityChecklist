@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SustainaBit Navigator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        .task-card {
+            transition: all 0.3s ease-in-out;
+        }
+        .task-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .task-details.open {
+            max-height: 1000px; /* Adjust as needed */
+        }
+        .matrix-cell {
+            min-height: 100px; 
+            display: flex; 
+            flex-direction: column;
+            align-items: flex-start; 
+            justify-content: flex-start; 
+            gap: 0.25rem; 
+        }
+        .matrix-task-item { /* Now a button */
+            background-color: #e0f2fe; /* Tailwind sky-100 */
+            border: 1px solid #7dd3fc; /* Tailwind sky-300 */
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem; /* text-xs */
+            line-height: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            word-break: break-word;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .matrix-task-item:hover {
+            background-color: #bae6fd; /* Tailwind sky-200 */
+        }
+        .feedback-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Styles for the message box */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; 
+        }
+        .message-box-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .question-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+            border-radius: 0.5rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            color: #374151; /* Tailwind gray-700 */
+        }
+        .input-group input[type="text"],
+        .input-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .input-group textarea {
+            min-height: 80px;
+        }
+
+        @media print {
+            body {
+                background-color: #fff;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #finalReportPage, #feedbackPage { /* Apply to feedback page as well if printed from there */
+                box-shadow: none;
+                padding: 0;
+                margin:0;
+                max-width: 100%;
+            }
+            .final-report-task {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="app-container" class="container mx-auto p-4 md:p-8 max-w-5xl">
+
+        <div id="welcomePage" class="bg-white p-8 rounded-lg shadow-lg">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-green-700 mb-4">SustainaBit Navigator</h1>
+                <p class="text-lg text-gray-700 mb-6">
+
+                    SustainaBit: Your interactive guide to embedding sustainability into your IT projects.
+
+
+                </p>
+            </div>
+            
+            <div class="input-group">
+                <label for="projectName">Project Name:</label>
+                <input type="text" id="projectName" name="projectName" placeholder="e.g., Cloud Migration Initiative Alpha">
+            </div>
+            <div class="input-group">
+                <label for="projectDescription">Project Description (brief):</label>
+                <textarea id="projectDescription" name="projectDescription" placeholder="e.g., Migrating on-premise CRM to AWS to improve scalability and reduce operational costs."></textarea>
+            </div>
+            <div class="input-group">
+                <label for="projectOwner">Your Name / Project Owner:</label>
+                <input type="text" id="projectOwner" name="projectOwner" placeholder="e.g., Jane Doe">
+            </div>
+
+            <div class="input-group mt-6">
+                <label for="projectTypeWelcome">Select Your IT Project Type (Primary Focus):</label>
+                <select id="projectTypeWelcome" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    <option value="cloudMigration" selected>Cloud Migration</option>
+                    <option value="softwareDevelopment">Software Development</option>
+                    <option value="infrastructureSetup">Infrastructure Setup</option>
+                    <option value="generalIT">General IT Project</option>
+                </select>
+            </div>
+            <div class="text-center mt-8">
+                <button id="startQuestionnaireBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out no-print">
+                    Start with Project Questions
+                </button>
+            </div>
+        </div>
+
+        <div id="caseStudyInputPage" class="hidden bg-white p-6 md:p-8 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold text-gray-800 mb-1">Tell Us About Your Project</h2>
+            <p class="text-md text-gray-600 mb-6">Project: <span id="caseStudyProjectNameDisplay" class="font-semibold"></span> | Type: <span id="caseStudyProjectTypeName" class="font-semibold text-green-700"></span></p>
+            <form id="caseStudyForm" class="space-y-2">
+                </form>
+            <div class="mt-8 flex justify-between items-center no-print">
+                <button id="backToWelcomeFromCaseStudyBtn" class="text-sm text-green-600 hover:text-green-800">&larr; Back to Welcome</button>
+                <button id="generateChecklistBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md">
+                    Generate My Adapted Checklist
+                </button>
+            </div>
+        </div>
+
+
+        <div id="checklistPage" class="hidden bg-white p-6 md:p-8 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-6 no-print">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800">Sustainability Checklist</h2>
+                    <p class="text-md text-gray-600">Project: <span id="checklistProjectNameDisplay" class="font-semibold"></span> | Type: <span id="checklistProjectTypeName" class="font-semibold text-green-700"></span></p>
+                </div>
+                <button id="backToCaseStudyBtn" class="text-sm text-green-600 hover:text-green-800">&larr; Edit Project Answers</button>
+            </div>
+            <div id="checklistContainer" class="space-y-8">
+                </div>
+            <div class="mt-8 text-center no-print">
+                 <p id="selectedTasksCount" class="text-gray-600 mb-4">You've selected 0 tasks.</p>
+                <button id="viewSummaryBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out" disabled>
+                    View My Sustainability Summary & Recommendations
+                </button>
+            </div>
+        </div>
+
+        <div id="summaryPage" class="hidden bg-white p-6 md:p-8 rounded-lg shadow-lg space-y-8">
+            <div class="flex justify-between items-center no-print">
+                 <div>
+                    <h2 class="text-3xl font-bold text-gray-800">Your Personalized IT Sustainability Roadmap</h2>
+                    <p class="text-md text-gray-600">Project: <span id="summaryProjectNameDisplay" class="font-semibold"></span> | Type: <span id="summaryProjectTypeName" class="font-semibold text-green-700"></span></p>
+                </div>
+                <button id="backToChecklistBtn" class="text-sm text-green-600 hover:text-green-800">&larr; Edit Checklist</button>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Prioritization Matrix (Effort vs. Impact)</h3>
+                <p class="text-sm text-gray-600 mb-1">Selected tasks are plotted below. Click a task to see its suggested owners.</p>
+                <div class="grid grid-cols-3 gap-1 border border-gray-300 rounded-md p-1 bg-gray-50">
+                    <div class="col-start-2 col-span-1 text-center font-medium text-sm py-1">Medium Impact</div>
+                    <div class="col-start-3 col-span-1 text-center font-medium text-sm py-1">High Impact</div>
+                    
+                    <div class="row-start-2 self-center text-center font-medium text-sm px-1 transform -rotate-90 md:rotate-0">High Effort</div>
+                    <div id="matrix-high-medium" class="matrix-cell border border-gray-200 p-2 rounded bg-white"></div>
+                    <div id="matrix-high-high" class="matrix-cell border border-gray-200 p-2 rounded bg-yellow-50"> 
+                        <span class="inline-block bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full mb-1 self-start">Strategic Imperatives</span>
+                    </div>
+
+                     <div class="row-start-3 self-center text-center font-medium text-sm px-1 transform -rotate-90 md:rotate-0">Medium Effort</div>
+                    <div id="matrix-medium-medium" class="matrix-cell border border-gray-200 p-2 rounded bg-white"></div>
+                    <div id="matrix-medium-high" class="matrix-cell border border-gray-200 p-2 rounded bg-white"></div>
+                   
+                    <div class="row-start-4 self-center text-center font-medium text-sm px-1 transform -rotate-90 md:rotate-0">Low Effort</div>
+                    <div id="matrix-low-medium" class="matrix-cell border border-gray-200 p-2 rounded bg-white"></div>
+                    <div id="matrix-low-high" class="matrix-cell border border-gray-200 p-2 rounded bg-green-50"> 
+                        <span class="inline-block bg-green-200 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full mb-1 self-start">Quick Wins</span>
+                    </div>
+
+                    <div class="col-start-1 row-start-5 text-center font-medium text-sm py-1"></div> 
+                    <div class="col-start-2 row-start-5 text-center font-medium text-sm py-1">Medium Impact</div>
+                    <div class="col-start-3 row-start-5 text-center font-medium text-sm py-1">High Impact</div>
+                </div>
+                <div id="matrixTaskOwnerInfo" class="mt-3 p-2 bg-indigo-50 border border-indigo-200 rounded text-sm text-indigo-700 min-h-[2.5em]">
+                    </div>
+                 <div class="mt-4">
+                    <p id="quickWinsText" class="text-sm text-gray-700"></p>
+                    <p id="strategicImperativesText" class="text-sm text-gray-700"></p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-3">Key Recommendations & Metrics</h3>
+                <div id="keyRecommendations" class="text-gray-600 space-y-2 text-sm"></div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-3">Overview of Your Selected Tasks</h3>
+                <div id="selectedTasksList" class="space-y-4 max-h-96 overflow-y-auto pr-2"> </div>
+            </div>
+            
+            <div class="text-center mt-6 no-print">
+                <button id="viewFinalReportBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md">
+                    View Final Report
+                </button>
+            </div>
+        </div>
+
+        <div id="finalReportPage" class="hidden bg-white p-6 md:p-8 rounded-lg shadow-lg space-y-6">
+            <div class="flex justify-between items-center no-print">
+                <h2 class="text-3xl font-bold text-gray-800">Final Sustainability Checklist Report</h2>
+                <button id="backToSummaryBtn" class="text-sm text-green-600 hover:text-green-800">&larr; Back to Summary</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <p class="text-lg text-gray-700"><strong>Project Name:</strong> <span id="reportProjectNameDisplay" class="font-normal"></span></p>
+                <p class="text-lg text-gray-700"><strong>Project Owner:</strong> <span id="reportProjectOwnerDisplay" class="font-normal"></span></p>
+                <p class="text-lg text-gray-700 md:col-span-2"><strong>Project Type:</strong> <span id="reportProjectTypeName" class="font-normal text-green-700"></span></p>
+                <p class="text-sm text-gray-600 md:col-span-2"><strong>Description:</strong> <span id="reportProjectDescriptionDisplay" class="font-normal"></span></p>
+            </div>
+            <div>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-3 border-b pb-2">Selected Sustainability Tasks & Details</h3>
+                <div id="finalReportTasksList" class="space-y-4">
+                    </div>
+            </div>
+            <div class="text-center mt-8 no-print">
+                 <button onclick="window.print()" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md mr-2">
+                    Print Report
+                </button>
+                <button id="proceedToFeedbackBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md">
+                    Provide Feedback & Finish
+                </button>
+            </div>
+        </div>
+
+        <div id="feedbackPage" class="hidden bg-white p-6 md:p-8 rounded-lg shadow-lg space-y-6">
+            <div class="flex justify-between items-center no-print">
+                <h2 class="text-3xl font-bold text-gray-800">Help Us Improve!</h2>
+                <button id="backToReportBtn" class="text-sm text-green-600 hover:text-green-800">&larr; Back to Report</button>
+            </div>
+            <p class="text-gray-700">We value your input. Please take a moment to share your thoughts on the Sustainability IT Navigator.</p>
+            <form id="feedbackForm" class="space-y-4">
+                <div>
+                    <label for="feedbackHelpful" class="block text-sm font-medium text-gray-700">How helpful was this Navigator for your project planning? (1=Not helpful, 5=Very helpful)</label>
+                    <select id="feedbackHelpful" name="feedbackHelpful" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="feedbackMissingTasks" class="block text-sm font-medium text-gray-700">Were there any critical tasks missing for <span class="font-semibold" id="feedbackProjectTypeName">your project type</span>?</label>
+                    <textarea id="feedbackMissingTasks" name="feedbackMissingTasks" rows="3" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="feedbackNextFeatures" class="block text-sm font-medium text-gray-700">What features would you love to see next?</label>
+                    <textarea id="feedbackNextFeatures" name="feedbackNextFeatures" rows="3" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="feedbackGeneralComments" class="block text-sm font-medium text-gray-700">General comments/suggestions:</label>
+                    <textarea id="feedbackGeneralComments" name="feedbackGeneralComments" rows="3" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"></textarea>
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out no-print">Submit Feedback</button>
+            </form>
+             <div class="text-center mt-6 no-print">
+                <button id="finishBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md">
+                    Finish & Restart
+                </button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <button id="floatingFeedbackBtn" class="feedback-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-full shadow-lg hidden no-print">
+        📣 Feedback
+    </button>
+
+    <div id="messageBoxOverlay" class="message-box-overlay hidden no-print">
+        <div class="message-box-content">
+            <p id="messageBoxText" class="mb-4"></p>
+            <button id="messageBoxCloseBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const caseStudyQuestions = [
+            { id: 'q1', text: 'Does your project involve migrating existing IT infrastructure or applications (e.g., to the cloud or a new data center)?', type: 'radio', options: ['Yes', 'No'],影响: 'migration' },
+            { id: 'q2', text: 'Will your project involve procuring new IT hardware (e.g., servers, networking equipment, end-user devices)?', type: 'radio', options: ['Yes', 'No'],影响: 'hardware' },
+            { id: 'q3', text: 'Does your project involve developing new software applications or significantly modifying existing ones?', type: 'radio', options: ['Yes', 'No'],影响: 'software' },
+            { id: 'q4', text: 'Will the project result in services being hosted in data centers (either cloud-based or on-premise)?', type: 'radio', options: ['Yes', 'No'],影响: 'hosting' },
+            { id: 'q5', text: 'Does your project involve managing or processing large volumes of data?', type: 'radio', options: ['Yes', 'No'],影响: 'data' },
+            { id: 'q6', text: 'Does your organization have formally defined corporate sustainability goals or an ESG (Environmental, Social, Governance) strategy?', type: 'radio', options: ['Yes', 'No'],影响: 'esgStrategy' },
+            { id: 'q7', text: 'Will external vendors or consultants play a significant role in the project execution?', type: 'radio', options: ['Yes', 'No'],影响: 'vendors' }
+        ];
+
+        const checklistData = [
+            // --- Pre-Project Phase ---
+            {
+                id: 'cm1', phase: 'Pre-Project', taskName: 'Define Clear Sustainability Objectives & Scope',
+                recommendedTools: ['ESG Frameworks (GRI, SASB, TCFD)', 'Internal ESG Reports', 'Stakeholder Workshops'],
+                purpose: 'Define project-specific sustainability goals aligned with organizational ESG strategy.',
+                taskOwners: ['Project Sponsor', 'PMO', 'Sustainability Officer', 'CIO'], effort: 'Medium', impact: 'High',
+                sustainabilityPriorities: ['Strategic Alignment', 'Resource Efficiency', 'Carbon Reduction'],
+                measureSustainabilityImpact: 'KPIs defined (e.g., % CO2e reduction target, % renewable energy usage target for cloud, PUE targets)',
+                relevanceCriteria: [{ questionId: 'q6', expectedAnswer: 'Yes' }]
+            },
+            {
+                id: 'cm2', phase: 'Pre-Project', taskName: 'Conduct Initial Sustainability Impact Assessment',
+                recommendedTools: ['Life Cycle Assessment (LCA) tools - simplified', 'Materiality Assessment tools'],
+                purpose: 'Identify potential environmental and social impacts of the project and key sustainability levers.',
+                taskOwners: ['Sustainability Officer', 'Project Manager', 'Technical Architect'], effort: 'Medium', impact: 'High',
+                sustainabilityPriorities: ['Risk Mitigation', 'Opportunity Identification', 'Holistic Impact View'],
+                relevanceCriteria: [] 
+            },
+            {
+                id: 'cm3', phase: 'Pre-Project', taskName: 'Assess carbon intensity of current vs. target cloud regions',
+                recommendedTools: ['Cloud Carbon Footprint', 'Green Web Foundation', 'Provider Dashboards (AWS, Azure, GCP)', 'Electricity Maps'],
+                purpose: 'Evaluate environmental impact of hosting regions to select lower-carbon options.',
+                taskOwners: ['Cloud Architect', 'IT Operations', 'Sustainability Analyst'], effort: 'Medium', impact: 'High',
+                sustainabilityPriorities: ['Minimize carbon footprint'],
+                measureSustainabilityImpact: 'CO2e per kWh (grid intensity), PUE of data centers, % renewable energy in grid mix',
+                relevanceCriteria: [{ questionId: 'q1', expectedAnswer: 'Yes' }, { questionId: 'q4', expectedAnswer: 'Yes' }]
+            },
+            {
+                id: 'cm4', phase: 'Pre-Project', taskName: 'Choose green-certified cloud providers',
+                recommendedTools: ['EcoVadis', 'CDP Reports', 'ISO 14001 Checklists', 'Provider Sustainability Reports'],
+                purpose: 'Ensure provider aligns with environmental standards and sustainability commitments.',
+                taskOwners: ['Procurement', 'CIO', 'Cloud Architect', 'Sustainability Officer'], effort: 'Low', impact: 'Medium',
+                sustainabilityPriorities: ['Minimize carbon footprint', 'Promote renewable energy', 'Water stewardship'],
+                measureSustainabilityImpact: 'Provider\'s % renewable energy, PUE, WUE, carbon neutrality commitments',
+                relevanceCriteria: [{ questionId: 'q1', expectedAnswer: 'Yes' }, { questionId: 'q4', expectedAnswer: 'Yes' }]
+            },
+            {
+                id: 'cm5', phase: 'Pre-Project', taskName: 'Sustainable Procurement & Vendor Selection',
+                recommendedTools: ['EPEAT Registry', 'Energy Star', 'TCO Certified', 'Vendor Questionnaires'],
+                purpose: 'Mandate/prefer IT hardware with eco-certifications. Inquire about lifespan, repairability, recycled content, take-back programs.',
+                taskOwners: ['Procurement Lead', 'IT Hardware Manager', 'Sustainability Officer'], effort: 'Low', impact: 'Medium',
+                sustainabilityPriorities: ['Circular Economy', 'Reduced e-waste', 'Energy Efficiency'],
+                measureSustainabilityImpact: '% new hardware meeting eco-labels, Vendor sustainability scores',
+                relevanceCriteria: [{ questionId: 'q2', expectedAnswer: 'Yes' }, { questionId: 'q7', expectedAnswer: 'Yes' }]
+            },
+            {
+                id: 'cm6', phase: 'Pre-Project', taskName: 'Use IaC for environment provisioning',
+                recommendedTools: ['Terraform', 'AWS CloudFormation', 'Azure ARM', 'Google Cloud Deployment Manager', 'Ansible'],
+                purpose: 'Optimize resource provisioning to prevent idle/wasteful server uptime. Ensures consistency.',
+                taskOwners: ['DevOps Engineer', 'Cloud Architect', 'IT Operations'], effort: 'Medium', impact: 'Medium',
+                sustainabilityPriorities: ['Reduce energy consumption (by avoiding waste)', 'Resource efficiency'],
+                measureSustainabilityImpact: 'Reduction in setup/teardown time, Avoided compute hours (estimated)',
+                relevanceCriteria: [{ questionId: 'q1', expectedAnswer: 'Yes' }, { questionId: 'q3', expectedAnswer: 'Yes' }, { questionId: 'q4', expectedAnswer: 'Yes' }] 
+            },
+            {
+                id: 'cm7', phase: 'Pre-Project', taskName: 'Regulatory Compliance Check (Sustainability-related)',
+                recommendedTools: ['EU CSRD Texts', 'Local environmental regulations', 'Legal/Compliance Database'],
+                purpose: 'Review implications of regulations like EU CSRD for reporting on ICT emissions and e-waste.',
+                taskOwners: ['Legal Counsel', 'Compliance Officer', 'Sustainability Officer', 'CIO'], effort: 'Medium', impact: 'High',
+                sustainabilityPriorities: ['Comply with environmental standards', 'Corporate Responsibility', 'Transparency'],
+                measureSustainabilityImpact: 'Confirmation of reporting readiness, List of applicable regulations',
+                relevanceCriteria: [{ questionId: 'q6', expectedAnswer: 'Yes' }] 
+            },
+            {
+                id: 'cm8', phase: 'Execution', taskName: 'Optimize data transfer for migrations',
+                recommendedTools: ['AWS DataSync', 'Azure Data Box', 'Google Transfer Appliance', 'Compression utilities', 'Deduplication tools'],
+                purpose: 'Reduce energy consumption during migration by minimizing transfer times and data volume.',
+                taskOwners: ['Cloud Engineer', 'Network Engineer', 'Data Migration Specialist'], effort: 'Medium', impact: 'Medium',
+                sustainabilityPriorities: ['Reduce energy consumption'],
+                measureSustainabilityImpact: 'kWh saved (estimated), GB of data compressed/deduplicated',
+                relevanceCriteria: [{ questionId: 'q1', expectedAnswer: 'Yes' }, { questionId: 'q5', expectedAnswer: 'Yes' }]
+            },
+            {
+                id: 'cm9', phase: 'Execution', taskName: 'Use serverless and autoscaling to reduce idle compute',
+                recommendedTools: ['AWS Lambda', 'Azure Functions', 'Google Cloud Functions', 'Kubernetes (KEDA)'],
+                purpose: 'Minimize resource wastage by matching compute resources precisely to demand.',
+                taskOwners: ['Cloud Architect', 'DevOps Engineer', 'Software Developer'], effort: 'Medium', impact: 'High',
+                sustainabilityPriorities: ['Reduce energy consumption', 'Resource efficiency'],
+                measureSustainabilityImpact: 'Reduction in idle compute hours, % utilization, CO2e reduction (estimated)',
+                relevanceCriteria: [{ questionId: 'q3', expectedAnswer: 'Yes' }, { questionId: 'q4', expectedAnswer: 'Yes' }]
+            },
+            {
+                id: 'cm10', phase: 'Execution', taskName: 'Monitor resource consumption and energy usage',
+                recommendedTools: ['Cloud provider monitoring (CloudWatch, Azure Monitor)', 'APM tools', 'Custom scripts'],
+                purpose: 'Track resource utilization and energy use to identify and address inefficiencies promptly.',
+                taskOwners: ['Cloud Operations', 'DevOps Engineer', 'Project Manager'], effort: 'Medium', impact: 'Medium',
+                sustainabilityPriorities: ['Optimize resource utilization', 'Early detection of inefficiencies'],
+                measureSustainabilityImpact: 'Real-time CPU/memory/storage dashboards, Energy consumption trends',
+                relevanceCriteria: [{ questionId: 'q4', expectedAnswer: 'Yes' }] 
+            },
+             {
+                id: 'cm15', phase: 'Execution', taskName: 'Implement Sustainable UI/UX Design Principles',
+                recommendedTools: ['Dark mode libraries', 'System font stacks', 'SVG icons', 'Performance analysis tools (Lighthouse)'],
+                purpose: 'Design user interfaces that are energy-efficient (e.g., dark mode, efficient rendering, reduced data load).',
+                taskOwners: ['UI/UX Designer', 'Frontend Developer', 'Product Owner'], effort: 'Medium', impact: 'Medium',
+                sustainabilityPriorities: ['Reduce end-user device energy', 'Improve performance', 'Accessibility'],
+                measureSustainabilityImpact: 'Page load times, data transfer size per page, availability of dark mode',
+                relevanceCriteria: [{ questionId: 'q3', expectedAnswer: 'Yes' }] 
+            },
+            {
+                id: 'cm11', phase: 'Closure', taskName: 'Monitor post-migration energy usage & carbon footprint',
+                recommendedTools: ['Cloud Carbon Footprint', 'AWS Cost Explorer & Sustainability Pillar', 'Azure Sustainability Calculator'],
+                purpose: 'Track ongoing sustainability metrics to verify benefits and identify further optimizations.',
+                taskOwners: ['Cloud Operations', 'Sustainability Analyst', 'Finance/Cost Management'], effort: 'Low', impact: 'High',
+                sustainabilityPriorities: ['Minimize carbon footprint', 'Validate savings', 'Continuous optimization'],
+                measureSustainabilityImpact: 'Actual kWh consumed, CO2e emissions, Comparison against baseline',
+                relevanceCriteria: [{ questionId: 'q1', expectedAnswer: 'Yes' }, { questionId: 'q4', expectedAnswer: 'Yes' }]
+            },
+            {
+                id: 'cm12', phase: 'Closure', taskName: 'Decommission legacy systems responsibly',
+                recommendedTools: ['ITAM Tools', 'Certified E-waste Recyclers (e-Stewards, R2)', 'Data erasure tools (Blancco)'],
+                purpose: 'Ensure responsible disposal/recycling/reuse of old hardware, adhering to circular economy principles.',
+                taskOwners: ['IT Operations Manager', 'Asset Manager', 'Procurement', 'Sustainability Officer'], effort: 'Medium', impact: 'High',
+                sustainabilityPriorities: ['Improve lifecycle management', 'E-waste reduction', 'Data security', 'Circular economy'],
+                measureSustainabilityImpact: 'kg of hardware recycled/reused, % assets via certified recyclers',
+                relevanceCriteria: [{ questionId: 'q1', expectedAnswer: 'Yes' }, { questionId: 'q2', expectedAnswer: 'Yes' }] 
+            },
+            {
+                id: 'cm13', phase: 'Closure', taskName: 'Final Sustainability Performance Reporting',
+                recommendedTools: ['Reporting/BI tools (Power BI, Tableau)', 'Presentation software'],
+                purpose: 'Compile a final report on sustainability performance against objectives and KPIs.',
+                taskOwners: ['Project Manager', 'Sustainability Officer', 'CIO'], effort: 'Medium', impact: 'Medium',
+                sustainabilityPriorities: ['Transparency', 'Accountability', 'Inform future projects'],
+                measureSustainabilityImpact: 'Achieved vs. Target KPIs (CO2e reduction, energy saved)',
+                relevanceCriteria: [{ questionId: 'q6', expectedAnswer: 'Yes' }] 
+            },
+            {
+                id: 'cm14', phase: 'Closure', taskName: 'Capture Sustainability Lessons Learned',
+                recommendedTools: ['Collaboration platforms (Confluence, SharePoint)', 'Workshop tools (Miro, Mural)'],
+                purpose: 'Document what worked well, what didn’t, and recommendations for future IT projects.',
+                taskOwners: ['Project Manager', 'All team members', 'Sustainability Officer'], effort: 'Low', impact: 'High',
+                sustainabilityPriorities: ['Continuous improvement', 'Knowledge sharing', 'Refine best practices'],
+                measureSustainabilityImpact: 'Number of actionable recommendations, Updated guidelines',
+                relevanceCriteria: [] 
+            }
+        ];
+
+        // --- APP STATE ---
+        let selectedTasks = [];
+        let currentSelectedProjectTypeName = "Cloud Migration"; 
+        let projectDetails = {
+            name: '',
+            description: '',
+            owner: ''
+        };
+        let caseStudyAnswers = {};
+
+
+        // --- DOM ELEMENTS ---
+        const welcomePage = document.getElementById('welcomePage');
+        const caseStudyInputPage = document.getElementById('caseStudyInputPage');
+        const checklistPage = document.getElementById('checklistPage');
+        const summaryPage = document.getElementById('summaryPage');
+        const finalReportPage = document.getElementById('finalReportPage');
+        const feedbackPage = document.getElementById('feedbackPage');
+        
+        const projectNameInput = document.getElementById('projectName');
+        const projectDescriptionInput = document.getElementById('projectDescription');
+        const projectOwnerInput = document.getElementById('projectOwner');
+        const projectTypeWelcomeSelect = document.getElementById('projectTypeWelcome');
+        const startQuestionnaireBtn = document.getElementById('startQuestionnaireBtn');
+
+        const caseStudyForm = document.getElementById('caseStudyForm');
+        const caseStudyProjectNameDisplayEl = document.getElementById('caseStudyProjectNameDisplay');
+        const caseStudyProjectTypeNameEl = document.getElementById('caseStudyProjectTypeName');
+        const backToWelcomeFromCaseStudyBtn = document.getElementById('backToWelcomeFromCaseStudyBtn');
+        const generateChecklistBtn = document.getElementById('generateChecklistBtn');
+        
+        const checklistProjectNameDisplayEl = document.getElementById('checklistProjectNameDisplay');
+        const checklistContainer = document.getElementById('checklistContainer');
+        const checklistProjectTypeNameEl = document.getElementById('checklistProjectTypeName');
+        const backToCaseStudyBtn = document.getElementById('backToCaseStudyBtn');
+        const selectedTasksCountEl = document.getElementById('selectedTasksCount');
+        const viewSummaryBtn = document.getElementById('viewSummaryBtn');
+
+        const summaryProjectNameDisplayEl = document.getElementById('summaryProjectNameDisplay');
+        const summaryProjectTypeNameEl = document.getElementById('summaryProjectTypeName');
+        const matrixTaskOwnerInfoEl = document.getElementById('matrixTaskOwnerInfo');
+        const keyRecommendationsEl = document.getElementById('keyRecommendations');
+        const selectedTasksListEl = document.getElementById('selectedTasksList'); 
+        const viewFinalReportBtn = document.getElementById('viewFinalReportBtn');
+
+
+        const backToChecklistBtn = document.getElementById('backToChecklistBtn'); 
+        const feedbackProjectTypeNameEl = document.getElementById('feedbackProjectTypeName'); // On Feedback Page
+
+        const reportProjectNameDisplayEl = document.getElementById('reportProjectNameDisplay');
+        const reportProjectOwnerDisplayEl = document.getElementById('reportProjectOwnerDisplay');
+        const reportProjectDescriptionDisplayEl = document.getElementById('reportProjectDescriptionDisplay');
+        const reportProjectTypeNameEl = document.getElementById('reportProjectTypeName');
+        const finalReportTasksListEl = document.getElementById('finalReportTasksList');
+        const backToSummaryBtn = document.getElementById('backToSummaryBtn'); 
+        const proceedToFeedbackBtn = document.getElementById('proceedToFeedbackBtn');
+
+
+        const floatingFeedbackBtn = document.getElementById('floatingFeedbackBtn');
+        const feedbackForm = document.getElementById('feedbackForm'); // On Feedback Page
+        const backToReportBtn = document.getElementById('backToReportBtn'); // On Feedback Page
+        const finishBtn = document.getElementById('finishBtn'); // On Feedback Page
+
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxText = document.getElementById('messageBoxText');
+        const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+
+        // --- FUNCTIONS ---
+
+        function showMessage(message) {
+            messageBoxText.textContent = message;
+            messageBoxOverlay.classList.remove('hidden');
+        }
+
+        function hideMessage() {
+            messageBoxOverlay.classList.add('hidden');
+        }
+        
+        function navigateTo(page) {
+            welcomePage.classList.add('hidden');
+            caseStudyInputPage.classList.add('hidden');
+            checklistPage.classList.add('hidden');
+            summaryPage.classList.add('hidden');
+            finalReportPage.classList.add('hidden');
+            feedbackPage.classList.add('hidden');
+            floatingFeedbackBtn.classList.add('hidden');
+
+            if (page === 'welcome') {
+                welcomePage.classList.remove('hidden');
+            } else if (page === 'caseStudyInput') {
+                caseStudyInputPage.classList.remove('hidden');
+                renderCaseStudyForm();
+            } else if (page === 'checklist') {
+                checklistPage.classList.remove('hidden');
+                floatingFeedbackBtn.classList.remove('hidden');
+            } else if (page === 'summary') {
+                summaryPage.classList.remove('hidden');
+                floatingFeedbackBtn.classList.remove('hidden');
+                renderSummaryPage();
+            } else if (page === 'finalReport') {
+                finalReportPage.classList.remove('hidden');
+                floatingFeedbackBtn.classList.remove('hidden');
+                renderFinalReportPage();
+            } else if (page === 'feedback') {
+                feedbackPage.classList.remove('hidden');
+                renderFeedbackPage(); // To update project type in feedback form
+            }
+        }
+        
+        function updateProjectContextDisplays() {
+            // Update elements that show project name and type
+            const projectName = projectDetails.name || "N/A";
+            if(caseStudyProjectNameDisplayEl) caseStudyProjectNameDisplayEl.textContent = projectName;
+            if(checklistProjectNameDisplayEl) checklistProjectNameDisplayEl.textContent = projectName;
+            if(summaryProjectNameDisplayEl) summaryProjectNameDisplayEl.textContent = projectName;
+            if(reportProjectNameDisplayEl) reportProjectNameDisplayEl.textContent = projectName;
+
+            if(caseStudyProjectTypeNameEl) caseStudyProjectTypeNameEl.textContent = currentSelectedProjectTypeName;
+            if(checklistProjectTypeNameEl) checklistProjectTypeNameEl.textContent = currentSelectedProjectTypeName;
+            if(summaryProjectTypeNameEl) summaryProjectTypeNameEl.textContent = currentSelectedProjectTypeName;
+            if(reportProjectTypeNameEl) reportProjectTypeNameEl.textContent = currentSelectedProjectTypeName;
+            if(feedbackProjectTypeNameEl) feedbackProjectTypeNameEl.textContent = currentSelectedProjectTypeName; // For feedback form context
+
+            if(reportProjectOwnerDisplayEl) reportProjectOwnerDisplayEl.textContent = projectDetails.owner || "N/A";
+            if(reportProjectDescriptionDisplayEl) reportProjectDescriptionDisplayEl.textContent = projectDetails.description || "N/A";
+
+        }
+
+
+        function renderCaseStudyForm() {
+            caseStudyForm.innerHTML = ''; 
+            updateProjectContextDisplays();
+
+            caseStudyQuestions.forEach(q => {
+                const questionGroup = document.createElement('div');
+                questionGroup.className = 'question-group';
+
+                const label = document.createElement('label');
+                label.htmlFor = q.id;
+                label.className = 'block text-sm font-medium text-gray-700 mb-2';
+                label.textContent = q.text;
+                questionGroup.appendChild(label);
+
+                if (q.type === 'radio') {
+                    const radioGroup = document.createElement('div');
+                    radioGroup.className = 'mt-2 space-y-2 md:space-y-0 md:flex md:space-x-4';
+                    q.options.forEach(option => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'flex items-center';
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.id = `${q.id}-${option.toLowerCase()}`;
+                        input.name = q.id;
+                        input.value = option;
+                        input.className = 'h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500';
+                        if (caseStudyAnswers[q.id] === option) {
+                            input.checked = true;
+                        }
+                        const optionLabel = document.createElement('label');
+                        optionLabel.htmlFor = input.id;
+                        optionLabel.className = 'ml-2 block text-sm text-gray-700';
+                        optionLabel.textContent = option;
+                        
+                        wrapper.appendChild(input);
+                        wrapper.appendChild(optionLabel);
+                        radioGroup.appendChild(wrapper);
+                    });
+                    questionGroup.appendChild(radioGroup);
+                }
+                caseStudyForm.appendChild(questionGroup);
+            });
+        }
+
+        function processCaseStudyAnswers() {
+            selectedTasks = []; 
+            const formData = new FormData(caseStudyForm);
+            caseStudyAnswers = {}; // Reset previous answers
+            for (const [key, value] of formData.entries()) {
+                caseStudyAnswers[key] = value;
+            }
+
+            checklistData.forEach(task => {
+                if (task.relevanceCriteria && task.relevanceCriteria.length > 0) {
+                    const isRelevant = task.relevanceCriteria.every(criterion => {
+                        return caseStudyAnswers[criterion.questionId] === criterion.expectedAnswer;
+                    });
+                    if (isRelevant) {
+                        if (!selectedTasks.includes(task.id)) {
+                            selectedTasks.push(task.id);
+                        }
+                    }
+                } 
+            });
+        }
+
+
+        function renderChecklist() {
+            checklistContainer.innerHTML = ''; 
+            updateProjectContextDisplays();
+
+
+            const phases = ['Pre-Project', 'Execution', 'Closure'];
+            phases.forEach(phase => {
+                const phaseTasks = checklistData.filter(task => task.phase === phase);
+                if (phaseTasks.length === 0) return;
+
+                const phaseSection = document.createElement('div');
+                phaseSection.innerHTML = `<h3 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">${phase}</h3>`;
+                
+                const tasksGrid = document.createElement('div');
+                tasksGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+
+                phaseTasks.forEach(task => {
+                    const taskCard = document.createElement('div');
+                    taskCard.className = 'task-card bg-gray-50 p-4 rounded-lg shadow hover:shadow-md border border-gray-200';
+                    const isPreSelected = selectedTasks.includes(task.id);
+                    taskCard.innerHTML = `
+                        <div class="flex items-start">
+                            <input type="checkbox" id="task-${task.id}" data-task-id="${task.id}" class="mt-1 h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-green-500" ${isPreSelected ? 'checked' : ''}>
+                            <div class="ml-3 flex-1">
+                                <label for="task-${task.id}" class="block text-md font-medium text-gray-800 cursor-pointer">${task.taskName} ${isPreSelected ? '<span class="text-xs text-green-600">(Auto-selected)</span>' : ''}</label>
+                                <button data-details-id="${task.id}" class="text-xs text-blue-600 hover:text-blue-800 mt-1">Show Details &rarr;</button>
+                            </div>
+                        </div>
+                        <div id="details-${task.id}" class="task-details mt-3 pt-3 border-t border-gray-200 text-sm text-gray-600 space-y-2">
+                            <p><strong>Purpose:</strong> ${task.purpose}</p>
+                            <p><strong>Recommended Tools:</strong> ${task.recommendedTools.join(', ')}</p>
+                            <p><strong>Suggested Owners:</strong> ${task.taskOwners.join(', ')}</p>
+                            <p><strong>Effort:</strong> <span class="font-semibold ${getEffortColor(task.effort)}">${task.effort}</span> | <strong>Impact:</strong> <span class="font-semibold ${getImpactColor(task.impact)}">${task.impact}</span></p>
+                            <p><strong>Sustainability Priorities:</strong> ${task.sustainabilityPriorities.join(', ')}</p>
+                            <p><strong>Measure Sustainability Impact:</strong> ${task.measureSustainabilityImpact}</p>
+                        </div>
+                    `;
+                    tasksGrid.appendChild(taskCard);
+                });
+                phaseSection.appendChild(tasksGrid);
+                checklistContainer.appendChild(phaseSection);
+            });
+
+            document.querySelectorAll('input[type="checkbox"][data-task-id]').forEach(checkbox => {
+                checkbox.addEventListener('change', (event) => {
+                    const taskId = event.target.dataset.taskId;
+                    const label = checkbox.closest('.flex').querySelector('label[for="task-' + taskId + '"]');
+                    const autoSelectedSpan = label.querySelector('span.text-green-600');
+
+                    if (event.target.checked) {
+                        if (!selectedTasks.includes(taskId)) selectedTasks.push(taskId);
+                    } else {
+                        selectedTasks = selectedTasks.filter(id => id !== taskId);
+                        if (autoSelectedSpan) autoSelectedSpan.remove(); 
+                    }
+                    updateSelectedTasksCount();
+                    viewSummaryBtn.disabled = selectedTasks.length === 0;
+                });
+            });
+
+            document.querySelectorAll('button[data-details-id]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const detailsId = event.target.dataset.detailsId;
+                    const detailsDiv = document.getElementById(`details-${detailsId}`);
+                    detailsDiv.classList.toggle('open');
+                    event.target.textContent = detailsDiv.classList.contains('open') ? 'Hide Details \u2190' : 'Show Details \u2192';
+                });
+            });
+            updateSelectedTasksCount();
+            viewSummaryBtn.disabled = selectedTasks.length === 0;
+        }
+        
+        function getEffortColor(effort) {
+            if (effort === 'Low') return 'text-green-600';
+            if (effort === 'Medium') return 'text-yellow-600';
+            if (effort === 'High') return 'text-red-600';
+            return 'text-gray-600';
+        }
+
+        function getImpactColor(impact) {
+            if (impact === 'Low') return 'text-red-500'; 
+            if (impact === 'Medium') return 'text-yellow-500';
+            if (impact === 'High') return 'text-green-500';
+            return 'text-gray-600';
+        }
+
+
+        function updateSelectedTasksCount() {
+            selectedTasksCountEl.textContent = `You've selected ${selectedTasks.length} task(s).`;
+        }
+
+        function renderSummaryPage() {
+            updateProjectContextDisplays();
+            const tasksToSummarize = checklistData.filter(task => selectedTasks.includes(task.id));
+            renderPrioritizationMatrix(tasksToSummarize);
+            renderKeyRecommendations(tasksToSummarize);
+            renderSelectedTasksList(tasksToSummarize, selectedTasksListEl); 
+        }
+
+        function renderPrioritizationMatrix(tasks) {
+            const matrixCellsIds = {
+                'low-high': 'matrix-low-high', 'medium-high': 'matrix-medium-high', 'high-high': 'matrix-high-high',
+                'low-medium': 'matrix-low-medium', 'medium-medium': 'matrix-medium-medium', 'high-medium': 'matrix-high-medium'
+            };
+            
+            Object.values(matrixCellsIds).forEach(cellId => {
+                 const cell = document.getElementById(cellId);
+                 if (cell) {
+                    const existingLabel = cell.querySelector('span.rounded-full');
+                    cell.innerHTML = ''; 
+                    if (existingLabel) cell.appendChild(existingLabel);
+                 }
+            });
+            matrixTaskOwnerInfoEl.innerHTML = 'Click a task in the matrix to see its owners.'; 
+            
+            let quickWinsList = [];
+            let strategicImperativesList = [];
+
+            tasks.forEach(task => {
+                const cellKey = `${task.effort.toLowerCase()}-${task.impact.toLowerCase()}`;
+                const cellId = matrixCellsIds[cellKey];
+                const cell = cellId ? document.getElementById(cellId) : null;
+
+                if (cell) {
+                    const taskButton = document.createElement('button'); 
+                    taskButton.className = 'matrix-task-item'; 
+                    taskButton.textContent = task.taskName;
+                    taskButton.dataset.taskId = task.id; 
+                    
+                    taskButton.addEventListener('click', () => {
+                        const clickedTask = checklistData.find(t => t.id === task.id);
+                        if (clickedTask) {
+                            matrixTaskOwnerInfoEl.innerHTML = `<strong>${clickedTask.taskName}</strong> Suggested Owner(s): <span class="font-semibold">${clickedTask.taskOwners.join(', ')}</span>`;
+                        }
+                    });
+                    cell.appendChild(taskButton);
+
+                    if (task.effort === 'Low' && task.impact === 'High') {
+                        quickWinsList.push(task.taskName);
+                    } else if (task.effort === 'High' && task.impact === 'High') {
+                        strategicImperativesList.push(task.taskName);
+                    }
+                }
+            });
+            
+            const quickWinsTextEl = document.getElementById('quickWinsText');
+            if (quickWinsList.length > 0) {
+                quickWinsTextEl.innerHTML = `<strong>Focus on these Quick Wins (${quickWinsList.length}):</strong> ${quickWinsList.join(', ')}.`;
+            } else {
+                quickWinsTextEl.innerHTML = '<strong>Quick Wins:</strong> No tasks selected in this category.';
+            }
+
+            const strategicImperativesTextEl = document.getElementById('strategicImperativesText');
+            if (strategicImperativesList.length > 0) {
+                strategicImperativesTextEl.innerHTML = `<strong>Plan for these Strategic Imperatives (${strategicImperativesList.length}):</strong> ${strategicImperativesList.join(', ')}.`;
+            } else {
+                strategicImperativesTextEl.innerHTML = '<strong>Strategic Imperatives:</strong> No tasks selected in this category.';
+            }
+        }
+
+        function renderKeyRecommendations(tasks) {
+            keyRecommendationsEl.innerHTML = ''; 
+            let recHTML = `<p>Based on your project details for a <strong>${currentSelectedProjectTypeName}</strong> project and selected tasks:</p><ul class="list-disc list-inside ml-4 space-y-1">`;
+            
+            const relevantTasksForRecs = tasks.filter(t => 
+                t.id === 'cm3' || t.id === 'cm9' || t.id === 'cm11' || t.id === 'cm12' || t.id === 'cm1' || t.id === 'cm5' || t.id === 'cm15'
+            );
+
+            if (relevantTasksForRecs.length === 0 && tasks.length > 0) {
+                 recHTML += `<li>Review the "Purpose" and "Sustainability Priorities" for each of your selected tasks to guide your project actions. <em>Metrics: Track completion of these tasks.</em></li>`;
+            } else if (tasks.length === 0) {
+                 keyRecommendationsEl.innerHTML = "<p>Select tasks from the checklist to see tailored recommendations.</p>";
+                return;
+            }
+
+            relevantTasksForRecs.forEach(task => {
+                let effortImpact = `(Effort: ${task.effort}, Impact: ${task.impact})`;
+                if (task.id === 'cm1') recHTML += `<li>Defining <strong>clear sustainability objectives</strong> ${effortImpact} early on, especially if your organization has an ESG strategy, sets a strong foundation. <em>Metrics: Documented sustainability KPIs for the project (e.g., target % CO2e reduction, % renewable energy use).</em></li>`;
+                if (task.id === 'cm3') recHTML += `<li>Prioritizing the assessment of <strong>carbon intensity of cloud regions</strong> ${effortImpact} is crucial if migrating to the cloud. <em>Metrics: CO2e/kWh of selected region vs. alternatives, PUE of chosen DC, % renewable energy in region's grid.</em></li>`;
+                if (task.id === 'cm5') recHTML += `<li>Considering <strong>sustainable procurement</strong> ${effortImpact} for any new hardware can significantly reduce e-waste. <em>Metrics: % of new hardware meeting EPEAT/Energy Star, number of vendors with take-back programs.</em></li>`;
+                if (task.id === 'cm9') recHTML += `<li>During execution, effectively <strong>using serverless and autoscaling</strong> ${effortImpact} minimizes resource wastage for cloud applications. <em>Metrics: Reduction in idle compute hours (vCPU-hrs), average resource utilization %, estimated CO2e savings from optimization.</em></li>`;
+                if (task.id === 'cm15') recHTML += `<li>Implementing <strong>sustainable UI/UX principles</strong> ${effortImpact} can reduce end-user device energy. <em>Metrics: Average page load time (ms), data transfer size per page (KB), user adoption of dark mode (if applicable).</em></li>`;
+                if (task.id === 'cm11') recHTML += `<li>Continuous <strong>monitoring of post-migration energy usage & carbon footprint</strong> ${effortImpact} is key to validating benefits. <em>Metrics: Actual kWh consumed by new solution, calculated CO2e emissions, % change vs. baseline.</em></li>`;
+                if (task.id === 'cm12') recHTML += `<li>Don't forget post-migration: <strong>decommissioning legacy systems responsibly</strong> ${effortImpact} addresses e-waste. <em>Metrics: kg of hardware recycled/reused, % of assets disposed via certified e-waste recyclers.</em></li>`;
+            });
+            
+            keyRecommendationsEl.innerHTML = recHTML + "</ul>";
+        }
+
+        function renderSelectedTasksList(tasks, targetElement) {
+            targetElement.innerHTML = ''; 
+            if (tasks.length === 0) {
+                targetElement.innerHTML = "<p>No tasks selected.</p>";
+                return;
+            }
+            tasks.forEach(task => {
+                const taskDetailEl = document.createElement('div');
+                taskDetailEl.className = 'p-4 border border-gray-200 rounded-lg bg-gray-50 final-report-task';
+                taskDetailEl.innerHTML = `
+                    <h4 class="text-md font-semibold text-gray-800">${task.taskName} <span class="text-xs font-normal text-gray-500">(${task.phase})</span></h4>
+                    <div class="mt-2 text-sm text-gray-600 space-y-1">
+                        <p><strong>Purpose:</strong> ${task.purpose}</p>
+                        <p><strong>Recommended Tools:</strong> ${task.recommendedTools.join(', ')}</p>
+                        <p><strong>Suggested Owners:</strong> ${task.taskOwners.join(', ')}</p>
+                        <p><strong>Effort:</strong> <span class="font-semibold ${getEffortColor(task.effort)}">${task.effort}</span> | <strong>Impact:</strong> <span class="font-semibold ${getImpactColor(task.impact)}">${task.impact}</span></p>
+                        <p><strong>Sustainability Priorities:</strong> ${task.sustainabilityPriorities.join(', ')}</p>
+                        <p><strong>Measure Sustainability Impact:</strong> ${task.measureSustainabilityImpact}</p>
+                    </div>
+                `;
+                targetElement.appendChild(taskDetailEl);
+            });
+        }
+        
+        function renderFinalReportPage() {
+            updateProjectContextDisplays();
+            const tasksToReport = checklistData.filter(task => selectedTasks.includes(task.id));
+            renderSelectedTasksList(tasksToReport, finalReportTasksListEl);
+        }
+
+        function renderFeedbackPage() {
+            updateProjectContextDisplays(); // Ensures project type in feedback form is current
+        }
+
+
+        // --- EVENT LISTENERS ---
+        startQuestionnaireBtn.addEventListener('click', () => {
+            projectDetails.name = projectNameInput.value.trim();
+            projectDetails.description = projectDescriptionInput.value.trim();
+            projectDetails.owner = projectOwnerInput.value.trim();
+
+            if (!projectDetails.name) {
+                showMessage("Please enter a Project Name to continue.");
+                return;
+            }
+            // Description and Owner are optional for now
+
+            const selectedOption = projectTypeWelcomeSelect.options[projectTypeWelcomeSelect.selectedIndex];
+            currentSelectedProjectTypeName = selectedOption.text; 
+            navigateTo('caseStudyInput');
+        });
+
+        backToWelcomeFromCaseStudyBtn.addEventListener('click', () => navigateTo('welcome'));
+
+        generateChecklistBtn.addEventListener('click', () => {
+            processCaseStudyAnswers();
+            renderChecklist();
+            navigateTo('checklist');
+        });
+        
+        backToCaseStudyBtn.addEventListener('click', () => navigateTo('caseStudyInput'));
+
+        viewSummaryBtn.addEventListener('click', () => {
+            navigateTo('summary');
+        });
+
+        backToChecklistBtn.addEventListener('click', () => navigateTo('checklist'));
+        
+        viewFinalReportBtn.addEventListener('click', () => {
+            navigateTo('finalReport');
+        });
+        
+        backToSummaryBtn.addEventListener('click', () => navigateTo('summary'));
+
+        proceedToFeedbackBtn.addEventListener('click', () => {
+            navigateTo('feedback');
+        });
+        
+        backToReportBtn.addEventListener('click', () => {
+            navigateTo('finalReport');
+        });
+
+        finishBtn.addEventListener('click', () => {
+            // Reset all state and go to welcome
+            selectedTasks = [];
+            projectDetails = { name: '', description: '', owner: '' };
+            caseStudyAnswers = {};
+            projectNameInput.value = '';
+            projectDescriptionInput.value = '';
+            projectOwnerInput.value = '';
+            projectTypeWelcomeSelect.value = 'cloudMigration'; // Reset to default
+            if(caseStudyForm) caseStudyForm.reset();
+            if(feedbackForm) feedbackForm.reset();
+            navigateTo('welcome');
+        });
+
+
+        floatingFeedbackBtn.addEventListener('click', () => {
+            navigateTo('feedback');
+        });
+
+        feedbackForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            showMessage("Thank you for your feedback! (Demo submission)");
+            // Optionally, you could clear the form here or navigate away
+            // feedbackForm.reset(); 
+            // For now, just show message and let user click "Finish & Restart" or "Back to Report"
+        });
+
+        messageBoxCloseBtn.addEventListener('click', hideMessage);
+
+
+        // --- INITIALIZATION ---
+        navigateTo('welcome'); 
+
+    </script>
+</body>
+</html>
