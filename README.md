@@ -61,8 +61,9 @@ We designed this solution based on user empathy research for two key profiles:
 
 The MVP focuses on a specific use case: **Cloud Migration**.
 
-<img width="943" height="611" alt="image" src="https://lugasraka.github.io/ITsustainabilityChecklist/" />
+<img width="943" height="611" alt="image" src="https://github.com/user-attachments/assets/5b03c556-7530-4cfa-ae4a-62d868dec1f4" />
 
+**MVP Dashboard App:** [Click for beta testing](https://lugasraka.github.io/ITsustainabilityChecklist/).
 
 ### 1. Project Context Input
 Users start by defining the project scope to generate relevant suggestions:
@@ -80,6 +81,9 @@ The tool outputs specific, measurable actions based on the inputs:
 * *Example:* "Prioritizing the assessment of carbon intensity of cloud regions."
 * *Metric:* CO2e/kWh of selected region vs. alternatives.
 
+<img width="943" height="995" alt="image" src="https://github.com/user-attachments/assets/2c67387d-d366-4601-81d6-520bdd298fc1" />
+
+
 ---
 
 ## 📂 Deliverables
@@ -90,4 +94,4 @@ The tool outputs specific, measurable actions based on the inputs:
 
 ---
 
-*Project created for the AI for Good Hackathon. Developed by Raka Adrianto and team.*
+*Project created for the AI for Good Hackathon hosted at Google Zurich Office in May 2025. Developed by Raka Adrianto and team.*
