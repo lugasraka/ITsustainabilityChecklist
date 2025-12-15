@@ -61,7 +61,7 @@ We designed this solution based on user empathy research for two key profiles:
 
 The MVP focuses on a specific use case: **Cloud Migration**.
 
-<img width="943" height="611" alt="image" src="https://github.com/user-attachments/assets/cb15e872-fc59-4140-840e-8f547319c7cf" />
+<img width="943" height="611" alt="image" src="https://lugasraka.github.io/ITsustainabilityChecklist/" />
 
 
 ### 1. Project Context Input
@@ -84,6 +84,7 @@ The tool outputs specific, measurable actions based on the inputs:
 
 ## 📂 Deliverables
 
+* **Demo web app:** [Link](https://lugasraka.github.io/ITsustainabilityChecklist/).
 * **Slide Deck:** [Link to Presentation](https://docs.google.com/presentation/d/1jSrGYqxp8dCI8MCA8yS2igRTI_Y7pOMct_qFOEvHoRs/edit?usp=sharing).
 * **Summary Blogpost:** [ClimateAction.tech Hackathon in Zurich: Take Two!](https://climateaction.tech/blog/climateaction-tech-hackathon-in-zurich-take-two/).
 
