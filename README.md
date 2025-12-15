@@ -4,7 +4,7 @@
 
 [![Event](https://img.shields.io/badge/Event-AI%20for%20Good%20Hackathon-blue)](https://zurichhack.climateaction.tech/)
 [![Focus](https://img.shields.io/badge/Focus-Sustainable%20IT-green)]()
-[![Status](https://img.shields.io/badge/Status-MVP%20Prototype-orange)]()
+[![Status](https://img.shields.io/badge/Status-MVP%20Prototype-orange)](https://lugasraka.github.io/ITsustainabilityChecklist/)
 
 ## 🌍 Background & Value Proposition
 
@@ -50,6 +50,9 @@ We designed this solution based on user empathy research for two key profiles:
 * **Pain Point:** Needs to ensure regulatory compliance and track progress across various technical projects.
 * **Goal:** Wants to monitor reporting easily and translate ideas into impact.
 
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/3f683b13-944d-41f4-93ee-05f8c186c8a7" />
+
+
 > **The "Job-to-be-Done":** Marco needs to stop asking "How do I start?" and start saying "I'm staying on track with sustainability tasks." Clara needs to say "We've made a real impact—and it's all documented.".
 
 ---
@@ -57,6 +60,9 @@ We designed this solution based on user empathy research for two key profiles:
 ## 🚀 MVP Features & Results
 
 The MVP focuses on a specific use case: **Cloud Migration**.
+
+<img width="943" height="611" alt="image" src="https://github.com/user-attachments/assets/cb15e872-fc59-4140-840e-8f547319c7cf" />
+
 
 ### 1. Project Context Input
 Users start by defining the project scope to generate relevant suggestions:
